@@ -206,6 +206,8 @@ dialog::backdrop { background: rgb(10 14 18 / .55); backdrop-filter: blur(3px); 
 .legenda p { margin: 0; color: var(--muted); font-size: .92rem; }
 .notas { margin: 18px 0 0; padding-left: 18px; display: grid; gap: 6px; color: var(--muted); max-width: 82ch; }
 footer { padding-block: 10px 40px; color: var(--muted); font-size: .84rem; }
+.nova-coleta { background: var(--accent-soft); border-top: 1px solid var(--line); }
+.nova-coleta .wrap { display: flex; align-items: center; justify-content: center; gap: 12px; padding-block: 8px; font-weight: 600; flex-wrap: wrap; }
 .aviso-toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 9px 16px; border-radius: 999px; font-weight: 600; font-size: .9rem; z-index: 50; }
 
 @media (max-width: 900px) {
@@ -241,8 +243,11 @@ footer { padding-block: 10px 40px; color: var(--muted); font-size: .84rem; }
     <button class="aba" role="tab" data-aba="ajuda" aria-selected="false">Como ler</button>
     <a class="aba" href="ao_vivo.html" style="text-decoration:none;color:var(--accent)">● Ao vivo</a>
   </nav>
-  <div class="atual">Coleta <b id="ultima"></b> · <span id="modo"></span> · <span id="execs"></span></div>
-</div></header>
+  <div class="atual">Coleta <b id="ultima"></b> · <span id="modo"></span> · <span id="execs"></span>
+    <button class="btn" id="recarregar" style="padding:4px 10px;margin-left:6px" title="Buscar a coleta mais recente">↻ Atualizar</button></div>
+</div>
+<div class="nova-coleta" id="nova-coleta" hidden><div class="wrap">Saiu uma coleta nova. <button class="btn prim" id="ver-nova">Atualizar agora</button></div></div>
+</header>
 
 <main class="wrap">
   <section id="v-ofertas">
@@ -644,6 +649,21 @@ function cupons() {
     });
   });
 }
+
+/* coleta nova no servidor: avisa e deixa atualizar com um toque (salvos e ocultos ficam no navegador) */
+$('recarregar').onclick = $('ver-nova').onclick = () => location.reload();
+let versao = null;
+async function conferirColeta() {
+  if (!/^https?:$/.test(location.protocol)) return;
+  try {
+    const r = await fetch(location.pathname, { method: 'HEAD', cache: 'no-store' });
+    const v = r.headers.get('etag') || r.headers.get('last-modified');
+    if (versao && v && v !== versao) $('nova-coleta').hidden = false;
+    versao = v || versao;
+  } catch (e) {}
+}
+setInterval(() => { if (!document.hidden) conferirColeta(); }, 60_000);
+conferirColeta();
 
 tudo();
 </script>

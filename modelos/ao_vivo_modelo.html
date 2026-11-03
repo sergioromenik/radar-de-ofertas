@@ -3,13 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="refresh" content="__INTERVALO__">
+<meta name="theme-color" content="#f0521c">
 <title>Radar Ao Vivo</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Layout: faixa de status no topo, alertas em destaque, depois o feed com a oferta mais nova primeiro. */
+/* Layout: faixa de status fixa com contagem e botão Atualizar; alertas em destaque; feed com a oferta mais nova no topo. */
 :root {
-  --bg: #f3f5f7; --surface: #ffffff; --ink: #111920; --muted: #5a6571; --line: #dce2e8; --accent: #f0521c;
+  --bg: #f3f5f7; --surface: #ffffff; --surface-2: #eaeef2; --ink: #111920; --muted: #5a6571; --line: #dce2e8;
+  --accent: #f0521c; --accent-ink: #ffffff; --accent-soft: #ffe6dc;
   --real: #13803f; --real-bg: #d9f5e3; --boa: #0b6f83; --boa-bg: #d6f1f6; --isca: #c0153f; --isca-bg: #fde0e6;
   --com: #6a3fc9; --com-bg: #ebe4fb; --normal: #5a6571; --normal-bg: #e8ecf0; --bug: #a15c00; --bug-bg: #fff0c7;
   --f-display: "Archivo", "Segoe UI", system-ui, sans-serif;
@@ -18,91 +19,213 @@
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) { :root {
-  --bg: #0d1217; --surface: #141b22; --ink: #e7edf2; --muted: #93a0ac; --line: #26313b; --accent: #ff7440;
+  --bg: #0d1217; --surface: #141b22; --surface-2: #1b242d; --ink: #e7edf2; --muted: #93a0ac; --line: #26313b;
+  --accent: #ff7440; --accent-ink: #1a0b04; --accent-soft: #3a1c10;
   --real: #5fd393; --real-bg: #12331f; --boa: #5cc6da; --boa-bg: #0f2f37; --isca: #ff7a96; --isca-bg: #3d1420;
   --com: #b99cf5; --com-bg: #2a1f45; --normal: #93a0ac; --normal-bg: #1f2932; --bug: #f7b54a; --bug-bg: #3a2a0c;
   color-scheme: dark; } }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 var(--f-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 3; background: var(--surface); }
 .wrap { max-width: 960px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-header { position: sticky; top: 0; z-index: 2; background: var(--surface); border-bottom: 1px solid var(--line); }
-header .wrap { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding-block: 12px; }
-h1 { font: 850 1.4rem/1 var(--f-display); font-stretch: 118%; margin: 0; display: flex; align-items: center; gap: 8px; }
-.of { box-shadow: 0 1px 2px rgb(17 25 32 / .06), 0 6px 18px rgb(17 25 32 / .05); border-radius: 14px; }
-.preco b { font-family: var(--f-display); font-weight: 850; font-size: 1.2rem; font-stretch: 105%; }
-.pulso { width: 10px; height: 10px; border-radius: 50%; background: var(--isca); }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--surface); border-bottom: 1px solid var(--line); }
+header .wrap { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 14px; align-items: center; padding-block: 10px; }
+h1 { font: 850 1.35rem/1 var(--f-display); font-stretch: 118%; margin: 0; display: flex; align-items: center; gap: 8px; }
+.pulso { width: 10px; height: 10px; border-radius: 50%; background: var(--isca); flex: none; }
+.pulso.lendo { background: var(--accent); }
+.pulso.erro { background: var(--muted); }
 @media (prefers-reduced-motion: no-preference) { .pulso { animation: p 1.6s ease-in-out infinite; } @keyframes p { 50% { opacity: .25; } } }
-.status { color: var(--muted); font-size: .9rem; flex: 1 1 260px; }
-.status b { font-family: var(--f-mono); color: var(--ink); font-weight: 600; }
-header a, header label { font-size: .9rem; color: var(--accent); }
-header label { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+.status { color: var(--muted); font-size: .86rem; min-width: 0; }
+.status b { font-family: var(--f-mono); color: var(--ink); font-weight: 700; }
+.acoes { display: flex; gap: 6px; align-items: center; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; font-weight: 600; cursor: pointer; text-decoration: none; color: var(--ink); white-space: nowrap; }
+.btn.prim { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.barra2 { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: .86rem; color: var(--muted); }
+.barra2 label { display: flex; gap: 6px; align-items: center; }
+.barra2 input { accent-color: var(--accent); }
+.aviso { grid-column: 1 / -1; font-size: .84rem; color: var(--isca); }
 main { display: grid; gap: 8px; padding-block: 14px 40px; }
-.of { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.of { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 2px rgb(17 25 32 / .06), 0 6px 18px rgb(17 25 32 / .05); }
 .of.novo { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
 .of.alerta { border-color: var(--bug); background: var(--bug-bg); }
-.of img, .ph { width: 52px; height: 52px; object-fit: contain; border-radius: 6px; background: var(--bg); }
+@media (prefers-reduced-motion: no-preference) { .of.chegou { animation: entra .5s ease-out; } @keyframes entra { from { transform: translateY(-6px); opacity: .3; } } }
+.of img, .ph { width: 56px; height: 56px; object-fit: contain; border-radius: 8px; background: #fff; }
+.ph { background: var(--surface-2); }
 .meio { min-width: 0; display: grid; gap: 3px; }
 .meio a { color: var(--ink); font-weight: 600; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .meio a:hover { text-decoration: underline; }
 .tags { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .8rem; color: var(--muted); align-items: center; }
-.hora { font: 600 .8rem var(--f-mono); color: var(--ink); }
-.pill { font: 700 .7rem var(--f-body); letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; }
+.hora { font: 700 .8rem var(--f-mono); color: var(--ink); }
+.pill { font: 700 .7rem var(--f-body); letter-spacing: .05em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
 .v-real { color: var(--real); background: var(--real-bg); } .v-boa { color: var(--boa); background: var(--boa-bg); }
 .v-isca { color: var(--isca); background: var(--isca-bg); } .v-comunidade { color: var(--com); background: var(--com-bg); }
 .v-bug { color: var(--bug); background: var(--surface); border: 1px solid var(--bug); }
 .v-normal, .v-sem_hist { color: var(--normal); background: var(--normal-bg); }
+.v-avaliando { color: var(--accent); background: var(--accent-soft); }
 .preco { display: grid; justify-items: end; line-height: 1.2; }
-.preco b { font: 600 1.05rem var(--f-mono); font-variant-numeric: tabular-nums; }
+.preco b { font: 850 1.2rem var(--f-display); font-stretch: 105%; font-variant-numeric: tabular-nums; }
 .preco s, .preco small { font: .75rem var(--f-mono); color: var(--muted); }
 .vazio { color: var(--muted); padding: 24px 0; }
-a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-@media (max-width: 560px) { .of { grid-template-columns: 44px minmax(0, 1fr); } .of img, .ph { width: 44px; height: 44px; } .preco { grid-column: 2; justify-items: start; } }
+@media (max-width: 560px) {
+  header .wrap { grid-template-columns: 1fr auto; }
+  .status { grid-column: 1 / -1; order: 3; }
+  .of { grid-template-columns: 46px minmax(0, 1fr); } .of img, .ph { width: 46px; height: 46px; }
+  .preco { grid-column: 2; justify-items: start; }
+}
 </style>
 </head>
 <body>
 <header><div class="wrap">
-  <h1><span class="pulso" aria-hidden="true"></span>Ao vivo</h1>
-  <div class="status">Atualizado às <b id="hora"></b>. Próxima leitura em <b id="conta"></b>. Ofertas que chegaram nas últimas <span id="horas"></span> horas.</div>
-  <label><input type="checkbox" id="soalertas"> Só alertas</label>
-  <a href="painel.html">Painel completo</a>
+  <h1><span class="pulso" id="pulso" aria-hidden="true"></span>Ao vivo</h1>
+  <div class="status" id="status" aria-live="polite"></div>
+  <div class="acoes">
+    <button class="btn prim" id="atualizar">Atualizar</button>
+    <button class="btn" id="som" aria-pressed="false" title="Som e vibração nos alertas">🔔</button>
+  </div>
+  <div class="barra2">
+    <label><input type="checkbox" id="soalertas"> Só alertas</label>
+    <span id="coleta"></span>
+    <a href="painel.html" style="color:var(--accent);margin-left:auto">Painel completo →</a>
+  </div>
+  <div class="aviso" id="aviso" hidden></div>
 </div></header>
 <main class="wrap" id="lista"></main>
 <script>
 const DADOS = __DADOS__;
-const ROTULO = { bug: 'bug', real: 'real', boa: 'boa', isca: 'isca', comunidade: 'comunidade', normal: 'normal', sem_hist: 'sem hist.' };
+const FUNCAO = __FUNCAO__;  // função do Supabase que lê o feed na hora (null = só os dados da coleta)
+const INTERVALO = 30;
+const ROTULO = { bug: 'bug', real: 'real', boa: 'boa', isca: 'isca', comunidade: 'comunidade', normal: 'normal', sem_hist: 'sem hist.', avaliando: 'nova' };
 const brl = v => v == null ? '' : v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const $ = id => document.getElementById(id);
+const hhmm = d => d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 const alerta = i => i.veredito === 'bug' || i.veredito === 'real' || (i.curtidas || 0) >= DADOS.curtidas_alerta;
-let so = false;
-try { so = localStorage.getItem('aovivo-so-alertas') === '1'; } catch (e) {}
-document.getElementById('soalertas').checked = so;
-document.getElementById('hora').textContent = DADOS.atualizado;
-document.getElementById('horas').textContent = DADOS.horas;
 
+/* guardado no navegador: ofertas lidas ao vivo (12 h), filtro e som */
+const ler = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } };
+const gravar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+let vivas = ler('aovivo-vivas', {});        // id -> oferta lida pela função, com "chegou" (ISO)
+let so = ler('aovivo-so-alertas', false);
+let som = ler('aovivo-som', false);
+const corte = Date.now() - DADOS.horas * 3600e3;
+for (const [id, o] of Object.entries(vivas)) if (Date.parse(o.chegou) < corte) delete vivas[id];
+
+/* avaliação rápida no navegador para o que ainda não passou pela coleta (o veredito de 365 dias vem depois) */
+function avaliarRapido(o) {
+  const sinais = [];
+  let v = 'avaliando';
+  if (/\b(bug|bugou|bugad[oa]|erro de pre[cç]o|pre[cç]o errado)\b/i.test(o.titulo)) { v = 'bug'; sinais.push('marcado como bug/erro de preço no título'); }
+  else if ((o.curtidas || 0) >= 20) v = 'comunidade';
+  if (o.preco_de && o.preco_de > o.preco) {
+    const d = Math.round((1 - o.preco / o.preco_de) * 100);
+    if (d >= 70) sinais.push(`anuncia -${d}% sem histórico para confirmar; o "de" costuma ser inflado`);
+  }
+  if (o.cupom) sinais.push('cupom ' + o.cupom);
+  sinais.push('veredito de 365 dias na próxima coleta');
+  return { ...o, veredito: v, sinais, nota: null };
+}
+
+function juntar() {
+  const base = new Map(DADOS.itens.map(i => [i.id, i]));
+  const extra = Object.values(vivas).filter(o => !base.has(o.id)).map(o => ({ ...avaliarRapido(o), chegouTs: Date.parse(o.chegou), vivo: true }));
+  const daColeta = DADOS.itens.map(i => ({ ...i, chegouTs: i.chegou_ts ? Date.parse(i.chegou_ts) : 0 }));
+  return [...extra, ...daColeta].sort((a, b) => b.chegouTs - a.chegouTs);
+}
+
+let novosAgora = new Set();
 function render() {
-  const itens = DADOS.itens.filter(i => !so || alerta(i));
-  document.getElementById('lista').innerHTML = itens.length ? itens.map(i => {
+  const itens = juntar().filter(i => !so || alerta(i));
+  $('lista').innerHTML = itens.length ? itens.map(i => {
     const img = i.img ? `<img src="${esc(i.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : '<div class="ph"></div>';
     const vm = i.vs_med == null ? '' : `<small>${i.vs_med > 0 ? '+' : ''}${i.vs_med.toLocaleString('pt-BR')}% vs mediana do ano</small>`;
-    const tags = [`<span class="hora">${i.chegou}</span>`, `<span class="pill v-${i.veredito}">${ROTULO[i.veredito]}</span>`,
+    const quando = i.chegouTs ? hhmm(new Date(i.chegouTs)) : (i.chegou || '');
+    const tags = [`<span class="hora">${quando}</span>`, `<span class="pill v-${i.veredito}">${ROTULO[i.veredito] || i.veredito}</span>`,
       `<b>${esc(i.loja)}</b>`, `<span>via ${esc(i.fonte)}</span>`,
-      i.fonte !== 'Pelando' && i.curtidas ? `<span>${i.curtidas} curtidas</span>` : '', ...i.sinais.slice(0, 3).map(s => `<span>${esc(s)}</span>`),
+      i.fonte !== 'Pelando' && i.curtidas ? `<span>${i.curtidas} curtidas</span>` : '',
+      ...(i.sinais || []).slice(0, 3).map(s => `<span>${esc(s)}</span>`),
       i.comparado ? `<span><i>comparado com: ${esc(i.comparado)}</i></span>` : ''].filter(Boolean).join('');
-    return `<article class="of${i.novo ? ' novo' : ''}${alerta(i) ? ' alerta' : ''}">${img}
-      <div class="meio"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.titulo)}</a><div class="tags">${tags}</div></div>
+    const cls = [novosAgora.has(i.id) ? 'novo chegou' : '', alerta(i) ? 'alerta' : ''].join(' ');
+    return `<article class="of ${cls}">${img}<div class="meio"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.titulo)}</a><div class="tags">${tags}</div></div>
       <div class="preco">${i.preco_de ? `<s>${brl(i.preco_de)}</s>` : ''}<b>${brl(i.preco)}</b>${vm}</div></article>`;
-  }).join('') : '<p class="vazio">Nenhuma oferta nova nas últimas horas com esse filtro.</p>';
+  }).join('') : '<p class="vazio">Nenhuma oferta nas últimas horas com esse filtro.</p>';
 }
-document.getElementById('soalertas').onchange = e => {
-  so = e.target.checked;
-  try { localStorage.setItem('aovivo-so-alertas', so ? '1' : '0'); } catch (er) {}
-  render();
-};
-let falta = DADOS.intervalo;
-const conta = document.getElementById('conta');
-const tique = () => { conta.textContent = falta > 0 ? falta + ' s' : 'agora'; falta--; };
-tique(); setInterval(tique, 1000);
-render();
+
+/* som e vibração (o navegador só libera som depois de um toque na página) */
+let audio = null;
+function apitar() {
+  if (!som) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.frequency.value = 1100; g.gain.setValueAtTime(.18, audio.currentTime); g.gain.exponentialRampToValueAtTime(.001, audio.currentTime + .35);
+    o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + .35);
+  } catch (e) {}
+  try { navigator.vibrate && navigator.vibrate([120, 60, 120]); } catch (e) {}
+}
+function pintarSom() { $('som').setAttribute('aria-pressed', som); $('som').textContent = som ? '🔔 Som' : '🔕'; }
+$('som').onclick = () => { som = !som; gravar('aovivo-som', som); pintarSom(); if (som) apitar(); };
+
+/* leitura na hora pela função */
+let falta = INTERVALO, lendo = false, ultimaLeitura = null;
+async function lerAgora() {
+  if (!FUNCAO || lendo) return;
+  lendo = true; $('pulso').className = 'pulso lendo'; status();
+  try {
+    const r = await fetch(FUNCAO, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const conhecidos = new Set([...DADOS.itens.map(i => i.id), ...Object.keys(vivas)]);
+    const agora = new Date().toISOString();
+    novosAgora = new Set();
+    for (const o of j.ofertas || []) {
+      if (!conhecidos.has(o.id)) { vivas[o.id] = { ...o, chegou: agora }; novosAgora.add(o.id); }
+    }
+    gravar('aovivo-vivas', vivas);
+    ultimaLeitura = new Date();
+    $('aviso').hidden = true;
+    $('pulso').className = 'pulso';
+    render();
+    if ([...novosAgora].some(id => alerta(avaliarRapido(vivas[id])))) apitar();
+  } catch (e) {
+    $('pulso').className = 'pulso erro';
+    $('aviso').textContent = 'Não consegui ler as ofertas agora (' + e.message + '). Tento de novo em ' + INTERVALO + ' s.';
+    $('aviso').hidden = false;
+  }
+  lendo = false; falta = INTERVALO; status();
+}
+function status() {
+  if (!FUNCAO) { $('status').innerHTML = 'Leitura ao vivo desligada; mostrando a coleta.'; return; }
+  const ult = ultimaLeitura ? `Lido às <b>${ultimaLeitura.toLocaleTimeString('pt-BR')}</b>` : 'Lendo…';
+  const n = novosAgora.size ? ` · <b>${novosAgora.size}</b> nova${novosAgora.size > 1 ? 's' : ''}` : '';
+  $('status').innerHTML = lendo ? 'Lendo ofertas…' : `${ult}${n} · próxima em <b>${falta} s</b>`;
+}
+$('atualizar').onclick = () => { falta = 0; lerAgora(); };
+$('soalertas').checked = so;
+$('soalertas').onchange = e => { so = e.target.checked; gravar('aovivo-so-alertas', so); render(); };
+$('coleta').textContent = `Vereditos de 365 dias: coleta das ${DADOS.atualizado.slice(0, 5)}`;
+
+/* quando sair uma coleta nova no servidor, recarrega para trazer os vereditos (as ofertas ao vivo ficam guardadas) */
+let versao = null;
+async function conferirColeta() {
+  if (location.protocol === 'file:') return;
+  try {
+    const r = await fetch(location.pathname, { method: 'HEAD', cache: 'no-store' });
+    const v = r.headers.get('etag') || r.headers.get('last-modified');
+    if (versao && v && v !== versao) location.reload();
+    versao = v || versao;
+  } catch (e) {}
+}
+
+setInterval(() => {
+  if (document.hidden) return;              // aba em segundo plano não gasta leitura
+  if (--falta <= 0) lerAgora(); else status();
+}, 1000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && falta > 3) { falta = 0; lerAgora(); } });
+setInterval(conferirColeta, 60_000);
+pintarSom(); render(); conferirColeta(); lerAgora();
 </script>
 </body>
 </html>

@@ -718,12 +718,13 @@ def gerar_ao_vivo(db, novos, intervalo=None):
         a = avaliar(db, it)
         itens.append(dict(id=it['id'], fonte=it['fonte'], loja=normalizar_loja(it['loja']), titulo=it['titulo'], url=it['url'], img=it['img'],
                           preco=it['preco'], preco_de=it['preco_de'], chegou=it['primeiro_ts'][11:16], novo=it['id'] in novos,
+                          chegou_ts=it['primeiro_ts'].replace(' ', 'T'),
                           curtidas=it['curtidas'], nota=a['nota'], veredito=a['veredito'], sinais=a['sinais'],
                           vs_med=a['vs_med'], comparado=a['comparado']))
     dados = dict(atualizado=datetime.now().strftime('%H:%M:%S'), intervalo=c['intervalo_s'], itens=itens,
                  horas=c['horas_na_pagina'], curtidas_alerta=c['curtidas_alerta'])
     html = open(os.path.join(D, 'modelos', 'ao_vivo_modelo.html'), encoding='utf-8').read()
-    html = html.replace('__INTERVALO__', str(min(c['intervalo_s'], 300)))  # recarrega no máximo a cada 5 min
+    html = html.replace('__FUNCAO__', json.dumps(c.get('funcao_url')))  # leitura na hora pelo navegador
     html = html.replace('__DADOS__', json.dumps(dados, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/'))
     tmp = os.path.join(D, 'ao_vivo.tmp')
     open(tmp, 'w', encoding='utf-8').write(html)

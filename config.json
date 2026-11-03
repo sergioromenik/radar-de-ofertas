@@ -15,6 +15,7 @@
 
   "ao_vivo": {
     "intervalo_s": 30,
+    "funcao_url": "https://vidfaxribatawymrifvv.supabase.co/functions/v1/radar-ao-vivo",
     "pelando_a_cada_s": 60,
     "rapida_a_cada_min": 15,
     "vinculos_por_ciclo": 3,
