@@ -4,7 +4,8 @@ name: Radar de Ofertas
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    # minutos quebrados: o GitHub costuma descartar agendamentos na hora cheia
+    - cron: "4,19,34,49 * * * *"
   workflow_dispatch:
 
 permissions:
