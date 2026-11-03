@@ -1,0 +1,74 @@
+# Coleta as ofertas a cada 15 minutos na nuvem e publica o painel no GitHub Pages.
+# O histórico de preços (dados/precos.db) fica no ramo "dados", sobrescrito a cada execução para não crescer.
+name: Radar de Ofertas
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: radar
+  cancel-in-progress: false
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      TZ: America/Sao_Paulo
+      PYTHONIOENCODING: utf-8
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Recuperar histórico de preços
+        run: |
+          if git fetch --depth=1 origin dados 2>/dev/null; then
+            git show FETCH_HEAD:precos.db > dados/precos.db
+            echo "histórico: $(du -h dados/precos.db | cut -f1)"
+          else
+            echo "primeira execução: sem histórico ainda"
+          fi
+
+      - name: Coletar ofertas
+        run: python -I monitor.py nuvem
+
+      - name: Guardar histórico de preços
+        if: always()
+        run: |
+          [ -f dados/precos.db ] || exit 0
+          tmp=$(mktemp -d)
+          cp dados/precos.db dados/execucoes.log "$tmp"/ 2>/dev/null || true
+          cd "$tmp"
+          git init -q -b dados
+          git config user.name "radar-bot"
+          git config user.email "radar-bot@users.noreply.github.com"
+          git add -A
+          git commit -qm "histórico $(date '+%Y-%m-%d %H:%M')"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" dados
+
+      - name: Montar site
+        run: |
+          mkdir -p _site
+          cp painel.html _site/
+          [ -f ao_vivo.html ] && cp ao_vivo.html _site/ || true
+          printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=painel.html"><title>Radar de Ofertas</title><a href="painel.html">Abrir o painel</a>' > _site/index.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

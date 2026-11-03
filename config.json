@@ -1,0 +1,59 @@
+{
+  "intervalo_entre_requisicoes_s": 1.2,
+  "painel_horas": 24,
+  "historico_dias": 365,
+  "min_dias_historico": 7,
+
+  "modos": {
+    "rapida":   {"fontes": ["promobit", "pelando", "zoom", "kabum"], "zoom_categorias": false, "paginas_kabum": 1, "max_buscas_vinculo": 0},
+    "completa": {"fontes": ["promobit", "pelando", "zoom", "kabum", "keepa", "keepa_gratis"], "zoom_categorias": true, "paginas_kabum": 2, "max_buscas_vinculo": 250}
+  },
+
+  "nuvem": {
+    "intervalo_min": 15
+  },
+
+  "ao_vivo": {
+    "intervalo_s": 30,
+    "pelando_a_cada_s": 60,
+    "rapida_a_cada_min": 15,
+    "vinculos_por_ciclo": 3,
+    "curtidas_alerta": 30,
+    "horas_na_pagina": 12,
+    "max_itens": 150
+  },
+
+  "promobit": {
+    "paginas_feed": 4,
+    "lojas": ["amazon", "mercado-livre", "magazine-luiza", "kabum", "aliexpress", "ifood", "shopee",
+              "casas-bahia", "americanas", "carrefour", "netshoes", "samsung"]
+  },
+
+  "zoom": {
+    "paginas_ofertas": 4,
+    "categorias": ["celular", "tv", "notebook", "geladeira", "lavadora-roupas", "ar-condicionado",
+                   "fritadeira", "smartwatch", "caixa-de-som-bluetooth", "games", "microondas", "cafeteira-eletrica",
+                   "lava-loucas", "placa-de-video"],
+    "rebuscar_historico_apos_dias": 7
+  },
+
+  "vincular": {
+    "ativo": true,
+    "refazer_sem_vinculo_apos_dias": 30
+  },
+
+  "kabum": {
+    "categorias": ["hardware", "perifericos", "computadores", "celular-smartphone", "tv", "gamer", "eletrodomesticos"]
+  },
+
+  "keepa_gratis": {
+    "arquivo": "dados/keepa_gratis.txt",
+    "lido_em": "2026-11-02",
+    "validade_dias": 7
+  },
+
+  "keepa": {
+    "chave": "",
+    "arquivo_asins": "dados/amazon_asins.txt"
+  }
+}

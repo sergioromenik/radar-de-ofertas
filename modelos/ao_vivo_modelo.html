@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="refresh" content="__INTERVALO__">
+<title>Radar Ao Vivo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: faixa de status no topo, alertas em destaque, depois o feed com a oferta mais nova primeiro. */
+:root {
+  --bg: #f3f5f7; --surface: #ffffff; --ink: #111920; --muted: #5a6571; --line: #dce2e8; --accent: #f0521c;
+  --real: #13803f; --real-bg: #d9f5e3; --boa: #0b6f83; --boa-bg: #d6f1f6; --isca: #c0153f; --isca-bg: #fde0e6;
+  --com: #6a3fc9; --com-bg: #ebe4fb; --normal: #5a6571; --normal-bg: #e8ecf0; --bug: #a15c00; --bug-bg: #fff0c7;
+  --f-display: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #0d1217; --surface: #141b22; --ink: #e7edf2; --muted: #93a0ac; --line: #26313b; --accent: #ff7440;
+  --real: #5fd393; --real-bg: #12331f; --boa: #5cc6da; --boa-bg: #0f2f37; --isca: #ff7a96; --isca-bg: #3d1420;
+  --com: #b99cf5; --com-bg: #2a1f45; --normal: #93a0ac; --normal-bg: #1f2932; --bug: #f7b54a; --bug-bg: #3a2a0c;
+  color-scheme: dark; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 var(--f-body); }
+.wrap { max-width: 960px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { position: sticky; top: 0; z-index: 2; background: var(--surface); border-bottom: 1px solid var(--line); }
+header .wrap { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding-block: 12px; }
+h1 { font: 850 1.4rem/1 var(--f-display); font-stretch: 118%; margin: 0; display: flex; align-items: center; gap: 8px; }
+.of { box-shadow: 0 1px 2px rgb(17 25 32 / .06), 0 6px 18px rgb(17 25 32 / .05); border-radius: 14px; }
+.preco b { font-family: var(--f-display); font-weight: 850; font-size: 1.2rem; font-stretch: 105%; }
+.pulso { width: 10px; height: 10px; border-radius: 50%; background: var(--isca); }
+@media (prefers-reduced-motion: no-preference) { .pulso { animation: p 1.6s ease-in-out infinite; } @keyframes p { 50% { opacity: .25; } } }
+.status { color: var(--muted); font-size: .9rem; flex: 1 1 260px; }
+.status b { font-family: var(--f-mono); color: var(--ink); font-weight: 600; }
+header a, header label { font-size: .9rem; color: var(--accent); }
+header label { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+main { display: grid; gap: 8px; padding-block: 14px 40px; }
+.of { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.of.novo { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
+.of.alerta { border-color: var(--bug); background: var(--bug-bg); }
+.of img, .ph { width: 52px; height: 52px; object-fit: contain; border-radius: 6px; background: var(--bg); }
+.meio { min-width: 0; display: grid; gap: 3px; }
+.meio a { color: var(--ink); font-weight: 600; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.meio a:hover { text-decoration: underline; }
+.tags { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .8rem; color: var(--muted); align-items: center; }
+.hora { font: 600 .8rem var(--f-mono); color: var(--ink); }
+.pill { font: 700 .7rem var(--f-body); letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; }
+.v-real { color: var(--real); background: var(--real-bg); } .v-boa { color: var(--boa); background: var(--boa-bg); }
+.v-isca { color: var(--isca); background: var(--isca-bg); } .v-comunidade { color: var(--com); background: var(--com-bg); }
+.v-bug { color: var(--bug); background: var(--surface); border: 1px solid var(--bug); }
+.v-normal, .v-sem_hist { color: var(--normal); background: var(--normal-bg); }
+.preco { display: grid; justify-items: end; line-height: 1.2; }
+.preco b { font: 600 1.05rem var(--f-mono); font-variant-numeric: tabular-nums; }
+.preco s, .preco small { font: .75rem var(--f-mono); color: var(--muted); }
+.vazio { color: var(--muted); padding: 24px 0; }
+a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 560px) { .of { grid-template-columns: 44px minmax(0, 1fr); } .of img, .ph { width: 44px; height: 44px; } .preco { grid-column: 2; justify-items: start; } }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1><span class="pulso" aria-hidden="true"></span>Ao vivo</h1>
+  <div class="status">Atualizado às <b id="hora"></b>. Próxima leitura em <b id="conta"></b>. Ofertas que chegaram nas últimas <span id="horas"></span> horas.</div>
+  <label><input type="checkbox" id="soalertas"> Só alertas</label>
+  <a href="painel.html">Painel completo</a>
+</div></header>
+<main class="wrap" id="lista"></main>
+<script>
+const DADOS = __DADOS__;
+const ROTULO = { bug: 'bug', real: 'real', boa: 'boa', isca: 'isca', comunidade: 'comunidade', normal: 'normal', sem_hist: 'sem hist.' };
+const brl = v => v == null ? '' : v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const alerta = i => i.veredito === 'bug' || i.veredito === 'real' || (i.curtidas || 0) >= DADOS.curtidas_alerta;
+let so = false;
+try { so = localStorage.getItem('aovivo-so-alertas') === '1'; } catch (e) {}
+document.getElementById('soalertas').checked = so;
+document.getElementById('hora').textContent = DADOS.atualizado;
+document.getElementById('horas').textContent = DADOS.horas;
+
+function render() {
+  const itens = DADOS.itens.filter(i => !so || alerta(i));
+  document.getElementById('lista').innerHTML = itens.length ? itens.map(i => {
+    const img = i.img ? `<img src="${esc(i.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : '<div class="ph"></div>';
+    const vm = i.vs_med == null ? '' : `<small>${i.vs_med > 0 ? '+' : ''}${i.vs_med.toLocaleString('pt-BR')}% vs mediana do ano</small>`;
+    const tags = [`<span class="hora">${i.chegou}</span>`, `<span class="pill v-${i.veredito}">${ROTULO[i.veredito]}</span>`,
+      `<b>${esc(i.loja)}</b>`, `<span>via ${esc(i.fonte)}</span>`,
+      i.fonte !== 'Pelando' && i.curtidas ? `<span>${i.curtidas} curtidas</span>` : '', ...i.sinais.slice(0, 3).map(s => `<span>${esc(s)}</span>`),
+      i.comparado ? `<span><i>comparado com: ${esc(i.comparado)}</i></span>` : ''].filter(Boolean).join('');
+    return `<article class="of${i.novo ? ' novo' : ''}${alerta(i) ? ' alerta' : ''}">${img}
+      <div class="meio"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.titulo)}</a><div class="tags">${tags}</div></div>
+      <div class="preco">${i.preco_de ? `<s>${brl(i.preco_de)}</s>` : ''}<b>${brl(i.preco)}</b>${vm}</div></article>`;
+  }).join('') : '<p class="vazio">Nenhuma oferta nova nas últimas horas com esse filtro.</p>';
+}
+document.getElementById('soalertas').onchange = e => {
+  so = e.target.checked;
+  try { localStorage.setItem('aovivo-so-alertas', so ? '1' : '0'); } catch (er) {}
+  render();
+};
+let falta = DADOS.intervalo;
+const conta = document.getElementById('conta');
+const tique = () => { conta.textContent = falta > 0 ? falta + ' s' : 'agora'; falta--; };
+tique(); setInterval(tique, 1000);
+render();
+</script>
+</body>
+</html>

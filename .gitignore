@@ -1,0 +1,9 @@
+# gerados a cada execução
+painel.html
+ao_vivo.html
+ao_vivo.tmp
+dados/precos.db
+dados/precos.db-journal
+dados/execucoes.log
+dados/painel_publicar.html
+__pycache__/
