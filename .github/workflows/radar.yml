@@ -65,6 +65,7 @@ jobs:
           mkdir -p _site
           cp painel.html _site/
           [ -f ao_vivo.html ] && cp ao_vivo.html _site/ || true
+          cp comparar.html _site/
           printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=painel.html"><title>Radar de Ofertas</title><a href="painel.html">Abrir o painel</a>' > _site/index.html
 
       - uses: actions/upload-pages-artifact@v3
