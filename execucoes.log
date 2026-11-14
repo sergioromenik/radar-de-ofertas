@@ -1,0 +1,10 @@
+2026-11-14 12:43:42 == coleta rapida 2026-11-14 12:43:42: promobit, pelando, zoom, kabum
+2026-11-14 12:44:10 Promobit: 341 ofertas, 345 cupons
+2026-11-14 12:44:10   HTTP 403 em https://www.pelando.com.br/recentes
+2026-11-14 12:44:11   HTTP 403 em https://www.pelando.com.br/mais-quentes
+2026-11-14 12:44:11 Pelando: 0 ofertas
+2026-11-14 12:44:16 Zoom: 105 produtos, 105 com histórico de 12 meses
+2026-11-14 12:44:23 KaBuM: 692 produtos
+2026-11-14 12:44:23 Vínculo Zoom: 0 buscas, 0 produtos encontrados; 74 vínculos com histórico (1122 na fila)
+2026-11-14 12:44:23 == fim da coleta rapida em 0.7 min, 27 requisições, 11 MB baixados
+2026-11-14 12:44:24 Painel: 2662 ofertas {'real': 27, 'boa': 56, 'normal': 1199, 'comunidade': 152, 'sem_hist': 1192, 'isca': 36}, 497 cupons -> /home/runner/work/radar-de-ofertas/radar-de-ofertas/painel.html
