@@ -1,0 +1,12 @@
+2026-11-21 04:46:02 == coleta completa 2026-11-21 04:46:02: promobit, pelando, zoom, kabum, keepa, keepa_gratis
+2026-11-21 04:46:43 Promobit: 351 ofertas, 347 cupons
+2026-11-21 04:46:43   HTTP 403 em https://www.pelando.com.br/recentes
+2026-11-21 04:46:45   HTTP 403 em https://www.pelando.com.br/mais-quentes
+2026-11-21 04:46:45 Pelando: 0 ofertas
+2026-11-21 04:47:28 Zoom: 375 produtos, 375 com histórico de 12 meses
+2026-11-21 04:47:45 KaBuM: 1378 produtos
+2026-11-21 04:47:45 Keepa: sem chave da API, Amazon fica só via Zoom e Promobit
+2026-11-21 04:47:45 Keepa grátis: arquivo lido em 02/11, mais velho que 7 dias; pulando
+2026-11-21 04:53:17 Vínculo Zoom: 250 buscas, 34 produtos encontrados; 82 vínculos com histórico (888 na fila)
+2026-11-21 04:53:17 == fim da coleta completa em 7.2 min, 343 requisições, 121 MB baixados
+2026-11-21 04:53:17 Painel: 2841 ofertas {'real': 38, 'boa': 69, 'comunidade': 159, 'normal': 1437, 'sem_hist': 1087, 'isca': 51}, 530 cupons -> /home/runner/work/radar-de-ofertas/radar-de-ofertas/painel.html
